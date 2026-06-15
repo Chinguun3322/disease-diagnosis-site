@@ -320,9 +320,9 @@ const indexHtml = `<!DOCTYPE html>
 
         const topProbability = data.predictions[0].probability;
         const secondProbability = data.predictions[1]?.probability || 0;
-        // Consider a disease "most likely" when top probability is at least 35%
+        // Consider a disease "most likely" when top probability is greater than 35%
         // and it exceeds the runner-up by at least 10 percentage points.
-        const hasStrongPrimary = topProbability >= 0.35 && topProbability - secondProbability >= 0.10;
+        const hasStrongPrimary = topProbability > 0.35 && topProbability - secondProbability >= 0.10;
         const primaryName = hasStrongPrimary ? data.predictions[0].displayName || data.predictions[0].name : null;
 
         resultContent.innerHTML = '';
