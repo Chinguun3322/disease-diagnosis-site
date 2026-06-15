@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 
 # Install deps (copy package files first for better cache)
 COPY package*.json ./
-RUN npm install --production
+RUN npm install --omit=dev
 
 # Copy app source
 COPY . .
