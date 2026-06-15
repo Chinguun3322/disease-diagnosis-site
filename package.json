@@ -1,0 +1,13 @@
+{
+  "name": "disease-diagnosis-site",
+  "version": "1.0.0",
+  "description": "A simple Node.js Express site for selecting age, gender, symptoms and suggesting likely disease categories.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongodb": "^5.7.0"
+  }
+}

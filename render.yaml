@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: disease-diagnosis-site
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+        scope: run-time
+    mounts:
+      - source: ./data
+        target: /data

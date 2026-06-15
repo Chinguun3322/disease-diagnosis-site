@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Disease Predictor</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Disease Diagnosis Helper</h1>
+      <p>Select age, gender, and symptoms to get suggested conditions.</p>
+      <p><a class="admin-link" href="/logs">View prediction logs</a></p>
+    </header>
+
+    <main>
+      <form id="prediction-form">
+        <div class="field-row">
+          <label for="age">Age</label>
+          <input type="number" id="age" name="age" min="1" max="120" value="30" required />
+        </div>
+
+        <div class="field-row">
+          <label for="gender">Gender</label>
+          <select id="gender" name="gender" required>
+            <option value="all">All</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+
+        <div class="field-row">
+          <label for="maxResults">Number of results</label>
+          <select id="maxResults" name="maxResults">
+            <option value="3">3 results</option>
+            <option value="4">4 results</option>
+            <option value="5">5 results</option>
+            <option value="6">6 results</option>
+            <option value="7">7 results</option>
+            <option value="8" selected>8 results</option>
+          </select>
+        </div>
+
+        <section class="symptoms-section">
+          <h2>Symptoms</h2>
+          <div class="symptom-grid">
+            <label><input type="checkbox" name="symptoms" value="dizziness" /> Dizziness / Vertigo</label>
+            <label><input type="checkbox" name="symptoms" value="headache" /> Headache</label>
+            <label><input type="checkbox" name="symptoms" value="tinnitus" /> Tinnitus</label>
+            <label><input type="checkbox" name="symptoms" value="dry mouth" /> Dry mouth</label>
+            <label><input type="checkbox" name="symptoms" value="dry tongue" /> Dry tongue</label>
+            <label><input type="checkbox" name="symptoms" value="blurred vision" /> Blurred vision</label>
+            <label><input type="checkbox" name="symptoms" value="toothache" /> Neuralgic toothache</label>
+            <label><input type="checkbox" name="symptoms" value="yawning" /> Constant yawning / fatigue</label>
+            <label><input type="checkbox" name="symptoms" value="fatigue" /> Chronic fatigue</label>
+            <label><input type="checkbox" name="symptoms" value="chest tightness" /> Chest tightness / congestion</label>
+            <label><input type="checkbox" name="symptoms" value="palpitations" /> Heart palpitations</label>
+            <label><input type="checkbox" name="symptoms" value="retching" /> Dry heaving / retching</label>
+            <label><input type="checkbox" name="symptoms" value="bloating" /> Abdominal bloating / pain</label>
+            <label><input type="checkbox" name="symptoms" value="rumbling" /> Stomach rumbling</label>
+            <label><input type="checkbox" name="symptoms" value="talkative" /> Talkativeness</label>
+            <label><input type="checkbox" name="symptoms" value="joint pain" /> Wandering joint pain</label>
+            <label><input type="checkbox" name="symptoms" value="back stiffness" /> Lower back stiffness</label>
+            <label><input type="checkbox" name="symptoms" value="chills" /> Chills / shivering</label>
+            <label><input type="checkbox" name="symptoms" value="insomnia" /> Insomnia</label>
+            <label><input type="checkbox" name="symptoms" value="dry cough" /> Dry cough</label>
+            <label><input type="checkbox" name="symptoms" value="anxiety" /> Anxiety / panic</label>
+          </div>
+        </section>
+
+        <button type="submit">Predict Condition</button>
+      </form>
+
+      <section id="result" class="result-box">
+        <h2>Prediction Result</h2>
+        <div id="result-content">Enter your symptoms and click Predict.</div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
