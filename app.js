@@ -527,17 +527,55 @@ const indexHtml = `<!DOCTYPE html>
         }
 
         const primaryName = data.primary ? data.primary.name : data.predictions[0].name;
+        resultContent.innerHTML = '';
 
-        resultContent.innerHTML = data.predictions.map((prediction, idx) => `
-          <div class="prediction-item ${prediction.name === primaryName ? 'primary-prediction' : ''}">
-            <h3>${prediction.name} ${prediction.name === primaryName ? '<small>(Most likely)</small>' : ''}</h3>
-            <p><strong>Category:</strong> ${prediction.category}</p>
-            <p>${prediction.description}</p>
-            <p><strong>Matched symptoms:</strong> ${prediction.matchedSymptoms.join(', ')}</p>
-            <p><strong>Probability:</strong> ${(prediction.probability * 100).toFixed(1)}%</p>
-            <p><strong>First aid / Advice:</strong> ${prediction.advice}</p>
-          </div>
-        `).join('');
+        data.predictions.forEach(prediction => {
+          const item = document.createElement('div');
+          item.className = 'prediction-item' + (prediction.name === primaryName ? ' primary-prediction' : '');
+
+          const title = document.createElement('h3');
+          title.textContent = prediction.name;
+          if (prediction.name === primaryName) {
+            const small = document.createElement('small');
+            small.textContent = ' (Most likely)';
+            title.appendChild(small);
+          }
+          item.appendChild(title);
+
+          const category = document.createElement('p');
+          const categoryLabel = document.createElement('strong');
+          categoryLabel.textContent = 'Category:';
+          category.appendChild(categoryLabel);
+          category.appendChild(document.createTextNode(' ' + prediction.category));
+          item.appendChild(category);
+
+          const description = document.createElement('p');
+          description.textContent = prediction.description;
+          item.appendChild(description);
+
+          const matched = document.createElement('p');
+          const matchedLabel = document.createElement('strong');
+          matchedLabel.textContent = 'Matched symptoms:';
+          matched.appendChild(matchedLabel);
+          matched.appendChild(document.createTextNode(' ' + prediction.matchedSymptoms.join(', ')));
+          item.appendChild(matched);
+
+          const probability = document.createElement('p');
+          const probabilityLabel = document.createElement('strong');
+          probabilityLabel.textContent = 'Probability:';
+          probability.appendChild(probabilityLabel);
+          probability.appendChild(document.createTextNode(' ' + (prediction.probability * 100).toFixed(1) + '%'));
+          item.appendChild(probability);
+
+          const advice = document.createElement('p');
+          const adviceLabel = document.createElement('strong');
+          adviceLabel.textContent = 'First aid / Advice:';
+          advice.appendChild(adviceLabel);
+          advice.appendChild(document.createTextNode(' ' + prediction.advice));
+          item.appendChild(advice);
+
+          resultContent.appendChild(item);
+        });
       } catch (error) {
         resultContent.innerHTML = '<p class="error">Network error occurred.</p>';
       }
@@ -654,7 +692,7 @@ const logsHtml = `<!DOCTYPE html>
         const data = await response.json();
 
         if (!response.ok) {
-          container.innerHTML = `<p class="error">${data.error || 'Failed to load logs.'}</p>`;
+          container.innerHTML = '<p class="error">' + (data.error || 'Failed to load logs.') + '</p>';
           return;
         }
 
@@ -663,22 +701,22 @@ const logsHtml = `<!DOCTYPE html>
           return;
         }
 
-        container.innerHTML = data.logs.map(log => `
-          <div class="prediction-item">
-            <h3>${new Date(log.created_at).toLocaleString()}</h3>
-            <p><strong>Age:</strong> ${log.age} | <strong>Gender:</strong> ${log.gender}</p>
-            <p><strong>Symptoms:</strong> ${log.symptoms.join(', ')}</p>
-            <p><strong>Top prediction:</strong> ${log.top_prediction}</p>
-            <details>
-              <summary>View predictions</summary>
-              <ul>
-                ${log.predictions.map(pred => `
-                  <li><strong>${pred.name}</strong> (${(pred.probability*100).toFixed(1)}%) - ${pred.category}</li>
-                `).join('')}
-              </ul>
-            </details>
-          </div>
-        `).join('');
+        container.innerHTML = data.logs.map(log =>
+          '<div class="prediction-item">' +
+            '<h3>' + new Date(log.created_at).toLocaleString() + '</h3>' +
+            '<p><strong>Age:</strong> ' + log.age + ' | <strong>Gender:</strong> ' + log.gender + '</p>' +
+            '<p><strong>Symptoms:</strong> ' + log.symptoms.join(', ') + '</p>' +
+            '<p><strong>Top prediction:</strong> ' + log.top_prediction + '</p>' +
+            '<details>' +
+              '<summary>View predictions</summary>' +
+              '<ul>' +
+                log.predictions.map(pred =>
+                  '<li><strong>' + pred.name + '</strong> (' + (pred.probability * 100).toFixed(1) + '%) - ' + pred.category + '</li>'
+                ).join('') +
+              '</ul>' +
+            '</details>' +
+          '</div>'
+        ).join('');
       } catch (error) {
         container.innerHTML = '<p class="error">Network error loading logs.</p>';
       }
