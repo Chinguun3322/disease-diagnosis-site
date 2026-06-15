@@ -159,9 +159,9 @@ const indexHtml = `<!DOCTYPE html>
     }
 
     .primary-prediction {
-      border-color: #60a5fa;
-      background: linear-gradient(90deg, #f0f9ff, #e6f2ff);
-      box-shadow: 0 6px 18px rgba(37,99,235,0.08);
+      border-color: #f97316;
+      background: linear-gradient(90deg, #fff7ed, #fff3e0);
+      box-shadow: 0 8px 22px rgba(249,115,22,0.10);
     }
 
     .prediction-item small {
@@ -320,7 +320,9 @@ const indexHtml = `<!DOCTYPE html>
 
         const topProbability = data.predictions[0].probability;
         const secondProbability = data.predictions[1]?.probability || 0;
-        const hasStrongPrimary = topProbability >= 0.40 && topProbability - secondProbability >= 0.10;
+        // Consider a disease "most likely" when top probability is at least 35%
+        // and it exceeds the runner-up by at least 10 percentage points.
+        const hasStrongPrimary = topProbability >= 0.35 && topProbability - secondProbability >= 0.10;
         const primaryName = hasStrongPrimary ? data.predictions[0].displayName || data.predictions[0].name : null;
 
         resultContent.innerHTML = '';
@@ -341,8 +343,13 @@ const indexHtml = `<!DOCTYPE html>
           title.textContent = nameLabel;
           if (nameLabel === primaryName) {
             const small = document.createElement('small');
-            small.textContent = ' (хамгийн магадталтай)';
+            small.textContent = ' (хамгийн магадлалтай)';
+            const percent = document.createElement('small');
+            percent.style.marginLeft = '8px';
+            percent.style.color = '#92400e';
+            percent.textContent = ' — Итгэл: ' + (prediction.probability * 100).toFixed(1) + '%';
             title.appendChild(small);
+            title.appendChild(percent);
           }
           item.appendChild(title);
 
@@ -377,6 +384,14 @@ const indexHtml = `<!DOCTYPE html>
           advice.appendChild(adviceLabel);
           advice.appendChild(document.createTextNode(' ' + prediction.advice));
           item.appendChild(advice);
+
+          // Always advise to see a doctor when needed after first-aid
+          const follow = document.createElement('p');
+          follow.style.marginTop = '6px';
+          follow.style.color = '#b91c1c';
+          follow.style.fontWeight = '600';
+          follow.textContent = 'Хэрэв шаардлагатай бол эмчид заавал үзүүлнэ үү.';
+          item.appendChild(follow);
 
           resultContent.appendChild(item);
         });
