@@ -1,6 +1,7 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
-const diseases = require('./data/diseases.json');
+const path = require('path');
+const diseases = require(path.join(__dirname, 'data', 'diseases.json'));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
