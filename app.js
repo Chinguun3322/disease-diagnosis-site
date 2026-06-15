@@ -1,5 +1,6 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
+const diseases = require('./data/diseases.json');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -7,247 +8,12 @@ const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const mongoDbName = process.env.MONGODB_DB || 'disease_app';
 let predictionsCollection = null;
 
-const diseases = [
-  {
-    "name": "Vertigo / Dizziness",
-    "category": "Easily Contracted",
-    "description": "Dizziness and vertigo often occur with wind-related imbalance or circulatory disturbance.",
-    "keywords": ["dizziness", "vertigo", "wind"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Tension Headache",
-    "category": "Easily Contracted",
-    "description": "Headache caused by stress, fatigue or muscle tension.",
-    "keywords": ["headache", "fatigue", "stress"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Tinnitus",
-    "category": "Easily Contracted",
-    "description": "Ear ringing or buzzing frequently linked to circulation or nerve irritation.",
-    "keywords": ["tinnitus", "ringing", "ear"],
-    "ageRange": "adult",
-    "gender": "all"
-  },
-  {
-    "name": "Dry Mouth / Dry Tongue",
-    "category": "Easily Contracted",
-    "description": "Dry mouth and tongue indicate fluid imbalance or low saliva production.",
-    "keywords": ["dry mouth", "dry tongue", "thirst"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Blurred Vision",
-    "category": "Easily Contracted",
-    "description": "Blurred vision may result from headache, eye strain or internal imbalance.",
-    "keywords": ["blurred vision", "vision", "eye"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Neuralgic Toothache",
-    "category": "Easily Contracted",
-    "description": "Sharp tooth pain from nerve irritation or gingival sensitivity.",
-    "keywords": ["toothache", "neuralgic toothache", "teeth"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Fatigue Syndrome",
-    "category": "Easily Contracted",
-    "description": "Constant yawning, fatigue and low energy due to body weakness.",
-    "keywords": ["yawning", "fatigue", "tired"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Chest Tightness / Congestion",
-    "category": "Easily Contracted",
-    "description": "Chest tightness or congestion often occurs with respiratory or nervous strain.",
-    "keywords": ["chest tightness", "congestion", "pressure"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Heart Palpitations",
-    "category": "Easily Contracted",
-    "description": "Palpitations may be linked to stress, anemia, or circulatory imbalance.",
-    "keywords": ["palpitations", "heart palpitations", "palpitation"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Gastric Bloating",
-    "category": "Easily Contracted",
-    "description": "Abdominal bloating and pain often occur with digestive imbalance or gas.",
-    "keywords": ["bloating", "abdominal bloating", "stomach pain"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Chronic Phlegm Disorder",
-    "category": "Chronic",
-    "description": "Persistent phlegm symptoms commonly linked to dampness or lung imbalance.",
-    "keywords": ["phlegm", "mucus", "cough"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Chronic Bile Disorder (Jaundice)",
-    "category": "Chronic",
-    "description": "Jaundice and chronic bile issues indicate liver or gallbladder disharmony.",
-    "keywords": ["jaundice", "bile", "yellow"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Chronic Kidney Disease",
-    "category": "Chronic",
-    "description": "Long-term kidney weakness with back pain, fatigue, or fluid imbalance.",
-    "keywords": ["lower back stiffness", "fatigue", "urine"],
-    "ageRange": "adult",
-    "gender": "all"
-  },
-  {
-    "name": "Chronic Lung Disease",
-    "category": "Chronic",
-    "description": "Lung weakness with cough, congestion, or breathing difficulty.",
-    "keywords": ["dry cough", "chest tightness", "breathing"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Chronic Arthritis / Rheumatism",
-    "category": "Chronic",
-    "description": "Long-term joint pain and stiffness often caused by cold or damp invasion.",
-    "keywords": ["joint pain", "back stiffness", "stiffness"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Dry Heaving / Retching",
-    "category": "Easily Contracted",
-    "description": "Episodes of dry retching often related to gastrointestinal upset or nervous causes.",
-    "keywords": ["retching", "dry heaving", "nausea"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Stomach Rumbling (Borborygmi)",
-    "category": "Easily Contracted",
-    "description": "Audible bowel sounds associated with digestion, gas or mild GI disturbance.",
-    "keywords": ["rumbling", "stomach rumbling", "borborygmi"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Talkativeness / Loquacity",
-    "category": "Easily Contracted",
-    "description": "Increased talkativeness or rapid speech sometimes seen with anxiety or neurological states.",
-    "keywords": ["talkative", "loquacity", "talkativeness"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Wandering Joint Pain (Acute)",
-    "category": "Easily Contracted",
-    "description": "Intermittent joint pains that migrate between joints, often inflammatory or infectious.",
-    "keywords": ["joint pain", "wandering", "migratory joint pain"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Lower Back Stiffness",
-    "category": "Easily Contracted",
-    "description": "Stiffness and discomfort in the lower back often from strain or chronic conditions.",
-    "keywords": ["back stiffness", "lower back stiffness", "lumbar pain"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Chills / Shivering",
-    "category": "Easily Contracted",
-    "description": "Shivering or chills commonly accompany infection, fever, or cold exposure.",
-    "keywords": ["chills", "shivering", "fever"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Insomnia",
-    "category": "Easily Contracted",
-    "description": "Difficulty initiating or maintaining sleep; may be acute or chronic and related to stress.",
-    "keywords": ["insomnia", "sleep difficulty", "sleeplessness"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Anxiety and Panic",
-    "category": "Easily Contracted",
-    "description": "Episodes of intense anxiety, fear, and panic attacks often accompanied by palpitations and breathlessness.",
-    "keywords": ["anxiety", "panic", "fear", "palpitations"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Chronic Infectious Fever",
-    "category": "Chronic",
-    "description": "Persistent or recurrent fever often due to chronic infection or inflammatory disease.",
-    "keywords": ["fever", "chronic fever", "infection"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Lymphatic System Disorder",
-    "category": "Chronic",
-    "description": "Disorders affecting lymph nodes or lymphatic circulation, causing swelling or recurrent infections.",
-    "keywords": ["lymph", "lymph nodes", "swelling", "lymphatic"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Chronic Ulcers / Non-healing Wounds",
-    "category": "Chronic",
-    "description": "Long-standing ulcers or wounds that fail to heal, often related to circulation or metabolic issues.",
-    "keywords": ["ulcer", "chronic ulcer", "non-healing wound"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Tumor / Neoplasm",
-    "category": "Chronic",
-    "description": "Abnormal tissue growths (benign or malignant) that may cause localized symptoms depending on site.",
-    "keywords": ["tumor", "neoplasm", "mass"],
-    "ageRange": "adult",
-    "gender": "all"
-  },
-  {
-    "name": "Recurrent Chronic Illness",
-    "category": "Chronic",
-    "description": "Recurring long-term illnesses that flare periodically and may have systemic symptoms.",
-    "keywords": ["recurrent", "chronic", "relapse"],
-    "ageRange": "all",
-    "gender": "all"
-  },
-  {
-    "name": "Chronic Fatigue Syndrome",
-    "category": "Chronic",
-    "description": "Long-term, debilitating fatigue not relieved by rest and often associated with multiple other symptoms.",
-    "keywords": ["chronic fatigue", "fatigue", "tired"],
-    "ageRange": "all",
-    "gender": "all"
-  }
-];
-
 const indexHtml = `<!DOCTYPE html>
-<html lang="en">
+<html lang="mn">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Disease Predictor</title>
+  <title>Өвчин таамаглагч</title>
   <style>
     :root {
       --bg: #f2f7fb;
@@ -420,72 +186,87 @@ const indexHtml = `<!DOCTYPE html>
 <body>
   <div class="container">
     <header>
-      <h1>Disease Diagnosis Helper</h1>
-      <p>Select age, gender, and symptoms to get suggested conditions.</p>
-      <p><a class="admin-link" href="/logs">View prediction logs</a></p>
+      <h1>Өвчин таах туслах</h1>
+      <p>Нас, хүйс, шинж тэмдгээ сонгож үр дүнг авна уу.</p>
+      <p style="color:#b91c1c; font-weight:600;">Энэ систем нь эмчийн оношилгоог орлохгүй, зөвхөн урьдчилсан мэдээлэл олгох зорилготой.</p>
+      <p><a class="admin-link" href="/logs">Таамаглалын түүхийг үзэх</a></p>
     </header>
 
     <main>
       <form id="prediction-form">
         <div class="field-row">
-          <label for="age">Age</label>
+          <label for="age">Нас</label>
           <input type="number" id="age" name="age" min="1" max="120" value="30" required />
         </div>
 
         <div class="field-row">
-          <label for="gender">Gender</label>
+          <label for="gender">Хүйс</label>
           <select id="gender" name="gender" required>
-            <option value="all">All</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
+            <option value="all">Бүгд</option>
+            <option value="male">Эрэгтэй</option>
+            <option value="female">Эмэгтэй</option>
           </select>
         </div>
 
         <div class="field-row">
-          <label for="maxResults">Number of results</label>
+          <label for="categoryFilter">Өвчний төрөл</label>
+          <select id="categoryFilter" name="categoryFilter">
+            <option value="all">Бүгд</option>
+            <option value="Easily Contracted">Шуурхай</option>
+            <option value="Chronic">Удаан үргэлжлэх</option>
+          </select>
+        </div>
+
+        <div class="field-row">
+          <label for="symptom-search">Шинж тэмдэг хайх</label>
+          <input type="text" id="symptom-search" placeholder="Жишээ нь: ханиад, өвдөх" />
+        </div>
+
+        <div class="field-row">
+          <label for="maxResults">Үр дүнгийн тоо</label>
           <select id="maxResults" name="maxResults">
-            <option value="3">3 results</option>
-            <option value="4">4 results</option>
-            <option value="5">5 results</option>
-            <option value="6">6 results</option>
-            <option value="7">7 results</option>
-            <option value="8" selected>8 results</option>
+            <option value="3">3 үр дүн</option>
+            <option value="4">4 үр дүн</option>
+            <option value="5">5 үр дүн</option>
+            <option value="6">6 үр дүн</option>
+            <option value="7">7 үр дүн</option>
+            <option value="8" selected>8 үр дүн</option>
           </select>
         </div>
 
         <section class="symptoms-section">
-          <h2>Symptoms</h2>
+          <h2>Шинж тэмдэг</h2>
           <div class="symptom-grid">
-            <label><input type="checkbox" name="symptoms" value="dizziness" /> Dizziness / Vertigo</label>
-            <label><input type="checkbox" name="symptoms" value="headache" /> Headache</label>
-            <label><input type="checkbox" name="symptoms" value="tinnitus" /> Tinnitus</label>
-            <label><input type="checkbox" name="symptoms" value="dry mouth" /> Dry mouth</label>
-            <label><input type="checkbox" name="symptoms" value="dry tongue" /> Dry tongue</label>
-            <label><input type="checkbox" name="symptoms" value="blurred vision" /> Blurred vision</label>
-            <label><input type="checkbox" name="symptoms" value="toothache" /> Neuralgic toothache</label>
-            <label><input type="checkbox" name="symptoms" value="yawning" /> Constant yawning / fatigue</label>
-            <label><input type="checkbox" name="symptoms" value="fatigue" /> Chronic fatigue</label>
-            <label><input type="checkbox" name="symptoms" value="chest tightness" /> Chest tightness / congestion</label>
-            <label><input type="checkbox" name="symptoms" value="palpitations" /> Heart palpitations</label>
-            <label><input type="checkbox" name="symptoms" value="retching" /> Dry heaving / retching</label>
-            <label><input type="checkbox" name="symptoms" value="bloating" /> Abdominal bloating / pain</label>
-            <label><input type="checkbox" name="symptoms" value="rumbling" /> Stomach rumbling</label>
-            <label><input type="checkbox" name="symptoms" value="talkative" /> Talkativeness</label>
-            <label><input type="checkbox" name="symptoms" value="joint pain" /> Wandering joint pain</label>
-            <label><input type="checkbox" name="symptoms" value="back stiffness" /> Lower back stiffness</label>
-            <label><input type="checkbox" name="symptoms" value="chills" /> Chills / shivering</label>
-            <label><input type="checkbox" name="symptoms" value="insomnia" /> Insomnia</label>
-            <label><input type="checkbox" name="symptoms" value="dry cough" /> Dry cough</label>
-            <label><input type="checkbox" name="symptoms" value="anxiety" /> Anxiety / panic</label>
+            <label><input type="checkbox" name="symptoms" value="dizziness" /> Толгой эргэх / Тэнцвэргүй байдал</label>
+            <label><input type="checkbox" name="symptoms" value="headache" /> Толгой өвчин</label>
+            <label><input type="checkbox" name="symptoms" value="tinnitus" /> Чих шуугих</label>
+            <label><input type="checkbox" name="symptoms" value="dry mouth" /> Хуурай ам</label>
+            <label><input type="checkbox" name="symptoms" value="dry tongue" /> Хуурай хэл</label>
+            <label><input type="checkbox" name="symptoms" value="blurred vision" /> Хараа бүдэгших</label>
+            <label><input type="checkbox" name="symptoms" value="toothache" /> Шүд өвдөх</label>
+            <label><input type="checkbox" name="symptoms" value="yawning" /> Дараалсан залгилах / ядралт</label>
+            <label><input type="checkbox" name="symptoms" value="fatigue" /> Тасралтгүй ядрах</label>
+            <label><input type="checkbox" name="symptoms" value="chest tightness" /> Цээж шахагдах / амьсгал давчдах</label>
+            <label><input type="checkbox" name="symptoms" value="palpitations" /> Зүрх дэлсэх</label>
+            <label><input type="checkbox" name="symptoms" value="retching" /> Хуурай бөөлжих</label>
+            <label><input type="checkbox" name="symptoms" value="bloating" /> Живхрэх / хэвлий өвдөлт</label>
+            <label><input type="checkbox" name="symptoms" value="rumbling" /> Хоол боловсруулах эрхтний дүнгэнэх</label>
+            <label><input type="checkbox" name="symptoms" value="talkative" /> Их ярьдаг байх</label>
+            <label><input type="checkbox" name="symptoms" value="joint pain" /> Явах үе үе үе үеү өвдөх</label>
+            <label><input type="checkbox" name="symptoms" value="back stiffness" /> Доод нуруу хөших</label>
+            <label><input type="checkbox" name="symptoms" value="chills" /> Хүйт өртөж хөлрөх</label>
+            <label><input type="checkbox" name="symptoms" value="insomnia" /> Нойргүйдэл</label>
+            <label><input type="checkbox" name="symptoms" value="dry cough" /> Хуурай ханиалгах</label>
+            <label><input type="checkbox" name="symptoms" value="anxiety" /> Сэтгэл түгшилт / хэт санаа зовох</label>
           </div>
         </section>
 
-        <button type="submit">Predict Condition</button>
+        <button type="submit">Таамаглах</button>
       </form>
 
       <section id="result" class="result-box">
-        <h2>Prediction Result</h2>
-        <div id="result-content">Enter your symptoms and click Predict.</div>
+        <h2>Таамаглалын үр дүн</h2>
+        <div id="result-content">Шинж тэмдгээ оруулж “Таамаглах” товчийг дарна уу.</div>
       </section>
     </main>
   </div>
@@ -493,58 +274,80 @@ const indexHtml = `<!DOCTYPE html>
   <script>
     const form = document.getElementById('prediction-form');
     const resultContent = document.getElementById('result-content');
+    const symptomSearch = document.getElementById('symptom-search');
+
+    symptomSearch.addEventListener('input', () => {
+      const query = symptomSearch.value.trim().toLowerCase();
+      document.querySelectorAll('.symptom-grid label').forEach(label => {
+        const text = label.textContent.toLowerCase();
+        label.style.display = text.includes(query) ? '' : 'none';
+      });
+    });
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
       const formData = new FormData(form);
       const age = formData.get('age');
       const gender = formData.get('gender');
+      const categoryFilter = formData.get('categoryFilter') || 'all';
       const symptoms = formData.getAll('symptoms');
       const maxResults = formData.get('maxResults') || 3;
 
-      resultContent.innerHTML = '<p>Loading prediction...</p>';
+      resultContent.innerHTML = '<p>Таамаглал уншиж байна...</p>';
 
       try {
         const response = await fetch('/api/predict', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ age, gender, symptoms, maxResults })
+          body: JSON.stringify({ age, gender, categoryFilter, symptoms, maxResults })
         });
 
         const data = await response.json();
         if (!response.ok) {
           const p = document.createElement('p');
           p.className = 'error';
-          p.textContent = data.error || 'Prediction failed.';
+          p.textContent = data.error || 'Таамаг амжилтгүй боллоо.';
           resultContent.innerHTML = '';
           resultContent.appendChild(p);
           return;
         }
 
         if (!data.predictions.length) {
-          resultContent.innerHTML = '<p>No likely conditions found. Try adjusting symptoms or age.</p>';
+          resultContent.innerHTML = '<p>Ихэнх магадлалтай өвчин олдсонгүй. Шинж тэмдэг эсвэл насыг өөрчлөн дахин оролдоно уу.</p>';
           return;
         }
 
-        const primaryName = data.primary ? data.primary.name : data.predictions[0].name;
+        const topProbability = data.predictions[0].probability;
+        const secondProbability = data.predictions[1]?.probability || 0;
+        const hasStrongPrimary = topProbability >= 0.40 && topProbability - secondProbability >= 0.10;
+        const primaryName = hasStrongPrimary ? data.predictions[0].displayName || data.predictions[0].name : null;
+
         resultContent.innerHTML = '';
+        if (!hasStrongPrimary) {
+          const note = document.createElement('p');
+          note.style.color = '#b45309';
+          note.style.marginBottom = '16px';
+          note.textContent = 'Эдгээр таамаглалын итгэлтэй байдал бага байна. Илүү тодорхой шинж тэмдэг оруулна уу.';
+          resultContent.appendChild(note);
+        }
 
         data.predictions.forEach(prediction => {
+          const nameLabel = prediction.displayName || prediction.name;
           const item = document.createElement('div');
-          item.className = 'prediction-item' + (prediction.name === primaryName ? ' primary-prediction' : '');
+          item.className = 'prediction-item' + (nameLabel === primaryName ? ' primary-prediction' : '');
 
           const title = document.createElement('h3');
-          title.textContent = prediction.name;
-          if (prediction.name === primaryName) {
+          title.textContent = nameLabel;
+          if (nameLabel === primaryName) {
             const small = document.createElement('small');
-            small.textContent = ' (Most likely)';
+            small.textContent = ' (хамгийн магадталтай)';
             title.appendChild(small);
           }
           item.appendChild(title);
 
           const category = document.createElement('p');
           const categoryLabel = document.createElement('strong');
-          categoryLabel.textContent = 'Category:';
+          categoryLabel.textContent = 'Төрөл:';
           category.appendChild(categoryLabel);
           category.appendChild(document.createTextNode(' ' + prediction.category));
           item.appendChild(category);
@@ -555,21 +358,21 @@ const indexHtml = `<!DOCTYPE html>
 
           const matched = document.createElement('p');
           const matchedLabel = document.createElement('strong');
-          matchedLabel.textContent = 'Matched symptoms:';
+          matchedLabel.textContent = 'Таарах шинж тэмдэг:';
           matched.appendChild(matchedLabel);
           matched.appendChild(document.createTextNode(' ' + prediction.matchedSymptoms.join(', ')));
           item.appendChild(matched);
 
           const probability = document.createElement('p');
           const probabilityLabel = document.createElement('strong');
-          probabilityLabel.textContent = 'Probability:';
+          probabilityLabel.textContent = 'Магадлал:';
           probability.appendChild(probabilityLabel);
           probability.appendChild(document.createTextNode(' ' + (prediction.probability * 100).toFixed(1) + '%'));
           item.appendChild(probability);
 
           const advice = document.createElement('p');
           const adviceLabel = document.createElement('strong');
-          adviceLabel.textContent = 'First aid / Advice:';
+          adviceLabel.textContent = 'Анхны тусламж / Зөвлөгөө:';
           advice.appendChild(adviceLabel);
           advice.appendChild(document.createTextNode(' ' + prediction.advice));
           item.appendChild(advice);
@@ -577,7 +380,7 @@ const indexHtml = `<!DOCTYPE html>
           resultContent.appendChild(item);
         });
       } catch (error) {
-        resultContent.innerHTML = '<p class="error">Network error occurred.</p>';
+        resultContent.innerHTML = '<p class="error">Сүлжээний алдаа гарлаа.</p>';
       }
     });
   </script>
@@ -585,11 +388,11 @@ const indexHtml = `<!DOCTYPE html>
 </html>`;
 
 const logsHtml = `<!DOCTYPE html>
-<html lang="en">
+<html lang="mn">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prediction Logs</title>
+  <title>Таамаглалын түүх</title>
   <style>
     :root {
       --bg: #f2f7fb;
@@ -672,14 +475,14 @@ const logsHtml = `<!DOCTYPE html>
 <body>
   <div class="container">
     <header>
-      <h1>Prediction Logs</h1>
-      <p>Recent prediction history stored in MongoDB.</p>
-      <p><a class="admin-link" href="/">Back to diagnosis</a></p>
+      <h1>Таамаглалын түүх</h1>
+      <p>Сүүлд гаргасан таамаглалууд MongoDB-д хадгалагдсан.</p>
+      <p><a class="admin-link" href="/">Таамаглал руу буцах</a></p>
     </header>
 
     <main>
       <div id="logs-container">
-        <p>Loading logs...</p>
+        <p>Түүх уншиж байна...</p>
       </div>
     </main>
   </div>
@@ -692,23 +495,23 @@ const logsHtml = `<!DOCTYPE html>
         const data = await response.json();
 
         if (!response.ok) {
-          container.innerHTML = '<p class="error">' + (data.error || 'Failed to load logs.') + '</p>';
+          container.innerHTML = '<p class="error">' + (data.error || 'Түүх уншихад алдаа гарлаа.') + '</p>';
           return;
         }
 
         if (!data.logs.length) {
-          container.innerHTML = '<p>No logs available yet.</p>';
+          container.innerHTML = '<p>Одоогоор түүх байхгүй.</p>';
           return;
         }
 
         container.innerHTML = data.logs.map(log =>
           '<div class="prediction-item">' +
             '<h3>' + new Date(log.created_at).toLocaleString() + '</h3>' +
-            '<p><strong>Age:</strong> ' + log.age + ' | <strong>Gender:</strong> ' + log.gender + '</p>' +
-            '<p><strong>Symptoms:</strong> ' + log.symptoms.join(', ') + '</p>' +
-            '<p><strong>Top prediction:</strong> ' + log.top_prediction + '</p>' +
+            '<p><strong>Нас:</strong> ' + log.age + ' | <strong>Хүйс:</strong> ' + log.gender + '</p>' +
+            '<p><strong>Шинж тэмдэг:</strong> ' + log.symptoms.join(', ') + '</p>' +
+            '<p><strong>Топ таамаглал:</strong> ' + log.top_prediction + '</p>' +
             '<details>' +
-              '<summary>View predictions</summary>' +
+              '<summary>Таамаглал үзэх</summary>' +
               '<ul>' +
                 log.predictions.map(pred =>
                   '<li><strong>' + pred.name + '</strong> (' + (pred.probability * 100).toFixed(1) + '%) - ' + pred.category + '</li>'
@@ -718,7 +521,7 @@ const logsHtml = `<!DOCTYPE html>
           '</div>'
         ).join('');
       } catch (error) {
-        container.innerHTML = '<p class="error">Network error loading logs.</p>';
+        container.innerHTML = '<p class="error">Түүхийг ачааллахад сүлжээний алдаа гарлаа.</p>';
       }
     }
 
@@ -766,38 +569,39 @@ function getAdvice(disease) {
   const kws = (disease.keywords || []).map(k => String(k).toLowerCase());
 
   if (kws.includes('chest tightness') || kws.includes('palpitations') || kws.includes('palpitation') || kws.includes('heart palpitations')) {
-    return 'If you have chest pain, severe shortness of breath, or fainting, seek emergency care immediately.';
+    return 'Хэвлийгээр өвдөх, амьсгаадах, эсвэл бөөлжих нь удаан үргэлжилбэл нэн даруй эмчийн тусламж авна уу.';
   }
   if (kws.includes('fever') || kws.includes('chronic fever')) {
-    return 'If fever is high (>38°C) or persistent, see a healthcare provider; stay hydrated and rest.';
+    return 'Халууралт өндөр (38°C-с дээш) эсвэл удаан үргэлжлвэл эмчид хандаж, бүлээн шингэн ихээр ууж, амарна уу.';
   }
   if (kws.includes('dry cough') || kws.includes('cough') || kws.includes('phlegm') || kws.includes('breathing')) {
-    return 'For cough or breathing difficulty, rest, keep hydrated; seek medical advice if persistent or severe.';
+    return 'Ханиад, амьсгал давчдах шинж бол бүрэн амарч, шингэн сайн ууж, хэрвээ удаан байвал эмчид үзүүл.';
   }
   if (kws.includes('bloating') || kws.includes('stomach pain') || kws.includes('nausea') || kws.includes('retching')) {
-    return 'Rest, avoid solid food for a few hours, sip clear fluids; seek care if severe pain, vomiting, or blood in stools.';
+    return 'Ходоод өвдөж, дотор огшоод байвал түргэн хоолноос зайлсхийж, тунгалаг шингэн ууж, хэрвээ бөөлжих, цус гарах зэрэг шинж байвал эмчээс зөвлөгөө ав.';
   }
   if (kws.includes('joint pain') || kws.includes('back stiffness') || kws.includes('stiffness')) {
-    return 'Rest the affected area, apply heat or cold as appropriate; see a clinician if pain is severe or lasts more than a few days.';
+    return 'Өвчилсөн хэсгийг амрааж, дулаан эсвэл хүйтэн жин тавь; өвчин хүчтэй байвал эсвэл хэд хоногоос илүү үргэлжилбэл эмчид үзүүл.';
   }
   if (kws.includes('dizziness') || kws.includes('vertigo') || kws.includes('tinnitus')) {
-    return 'Sit or lie down when dizzy; avoid driving or climbing; seek medical advice if persistent or worsening.';
+    return 'Толгой эргэх үед сууж эсвэл хэвтээд, жолоо барихгүй, өндөрт гарахгүй бай; шинж удаан үргэлжилбэл эмчээс зөвлөгөө ав.';
   }
 
-  return 'If symptoms are severe, worsening, or you are concerned, seek medical attention. Rest and stay hydrated.';
+  return 'Шинж тэмдэг хүчтэй, муудаж байгаа эсвэл санаа зовоосой бол эмчид хандаж, амарсан ба шингэн сайн ууж байгаарай.';
 }
 
 app.post('/api/predict', (req, res) => {
-  const { age, gender, symptoms } = req.body;
-  let { maxResults } = req.body;
+  const { age, gender, categoryFilter } = req.body;
+  let { maxResults, symptoms } = req.body;
   const ageNumber = Number(age);
   const selectedSymptoms = Array.isArray(symptoms)
     ? symptoms.map(normalizeText)
     : [];
   const normalizedGender = normalizeText(gender || 'all');
+  const normalizedCategory = normalizeText(categoryFilter || 'all');
 
   if (!selectedSymptoms.length) {
-    return res.status(400).json({ error: 'Please select at least one symptom.' });
+    return res.status(400).json({ error: 'Заавал нэг шинж тэмдэг сонгоно уу.' });
   }
 
   maxResults = Number(maxResults) || 3;
@@ -805,6 +609,7 @@ app.post('/api/predict', (req, res) => {
   if (maxResults > 8) maxResults = 8;
 
   const scored = diseases
+    .filter(disease => normalizedCategory === 'all' || normalizeText(disease.category) === normalizedCategory)
     .map(disease => scoreDisease(disease, selectedSymptoms, ageNumber, normalizedGender))
     .map(item => ({ ...item, score: Math.max(0, item.score) }))
     .filter(item => item.score > 0)
@@ -817,6 +622,7 @@ app.post('/api/predict', (req, res) => {
   const total = scored.reduce((s, it) => s + it.score, 0) || 1;
   const top = scored.slice(0, maxResults).map(item => ({
     name: item.name,
+    displayName: item.displayName || item.name,
     category: item.category,
     description: item.description,
     matchedSymptoms: item.matchedSymptoms,
@@ -825,7 +631,7 @@ app.post('/api/predict', (req, res) => {
     advice: item.advice || getAdvice(item)
   }));
 
-  const topPrediction = top[0].name;
+  const topPrediction = top[0].displayName;
   const logItem = {
     created_at: new Date(),
     age: ageNumber,
@@ -846,14 +652,14 @@ app.post('/api/predict', (req, res) => {
 
 app.get('/api/logs', async (req, res) => {
   if (!predictionsCollection) {
-    return res.status(500).json({ error: 'MongoDB not connected.' });
+    return res.status(500).json({ error: 'MongoDB холбогдоогүй байна.' });
   }
 
   try {
     const rows = await predictionsCollection.find({}).sort({ created_at: -1 }).limit(20).toArray();
     res.json({ logs: rows });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch logs.' });
+    res.status(500).json({ error: 'Түүхийг татахад амжилтгүй боллоо.' });
   }
 });
 
